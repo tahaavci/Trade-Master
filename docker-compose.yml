@@ -1,0 +1,60 @@
+version: '3.6'
+services:
+
+  database: 
+      image: postgres
+      command: postgres -c listen_addresses='*'
+      volumes:
+        - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+      environment:
+        - POSTGRES_USER=sa
+        - POSTGRES_PASSWORD=password1
+        - POSTGRES_DB=root-db
+      container_name: trademaster-db
+      ports:
+        - 6000:5432
+
+
+        
+  account-api:
+      image: account-api
+      build: ./trader-account-api
+      ports:
+        - "8080:8080"
+      networks:
+        static-network:
+          ipv4_address: 172.20.128.2
+
+     
+  exchange-api:
+      image: exchange-api
+      build: ./trader-exchange-api
+      ports:
+        - "8090:8090"
+      networks:
+        static-network:
+          ipv4_address: 172.20.128.3
+
+
+  frontend:
+    container_name: trader-fe
+    build: ./trader-fe
+    volumes:
+      - './:/app'
+      - '/app/node_modules'
+    ports:
+      - 3000:3000
+    stdin_open: true
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    command: npm start
+    networks:
+        static-network:
+          ipv4_address: 172.20.128.4
+
+
+networks:
+  static-network:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
