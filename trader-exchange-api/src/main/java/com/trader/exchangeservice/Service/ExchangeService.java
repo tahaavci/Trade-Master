@@ -47,6 +47,8 @@ public class ExchangeService {
 
         if (src.accountType() == dst.accountType()){
 
+            if(src.accountBalance().compareTo(dto.amount()) < 0)
+                throw new InsufficientBalanceException();
 
             TransactionApproveQueue queue = transactionApproveQueueService.SaveToQueue(
                     new TransactionApproveQueue(dto.srcAccount(),
